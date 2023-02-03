@@ -3,8 +3,8 @@ import {jwtTokens} from '../middleware/Jwt.config.js'
 import { Router } from "express";
 import { SignIn } from "../Controllers/User.SignIn.js";
 import { SignUp } from "../Controllers/User.SignUp.js";
-import bcrypt from "bcrypt";
-import { readUsers } from '../Controllers/readUsers.js';
+import bcrypto from "bcrypt";
+import { actualizarDatos, actualizarPassword, deleteUsuario, readUsers } from '../Controllers/readUsers.js';
 import { authenticateToken } from '../middleware/authenticatorJwt.js';
 import { actualizarServicio } from '../Controllers/switchServicio.js';
 
@@ -48,7 +48,7 @@ routesUser.post('/SignIn', async  (req, res) =>{
   try {
     const {email,password} = req.body
     const respuesta = await SignIn(email)
-    const validPassword = await bcrypt.compare(password, respuesta.password)
+    const validPassword = await bcrypto.compare(password, respuesta.password)
     if(!validPassword) return res.status(401).json({ error: 'Password incorrect'})
     let {accessToken} = jwtTokens(respuesta)
     res.cookie('accessToken',accessToken,{httpOnly: true})
@@ -61,7 +61,15 @@ routesUser.post('/SignIn', async  (req, res) =>{
 })
 
 // Editar Datos Usuarios (menos Email y password)
-
+routesUser.post('/editDatos', async (req, res) =>{
+  try {
+    const Datos = req.body
+    const respuesta = await actualizarDatos(Datos)
+    res.status(200).json('Los Datos Personales han Sido Cambiado Con Exito')
+}catch (error) {
+  res.status(500).send( 'Usuario No Existe')
+}}
+)
 
 //Editar Datos 'Servicio' Usuarios Para Poder Publicar
 routesUser.post('/editServicio', async (req, res) =>{
@@ -75,9 +83,27 @@ routesUser.post('/editServicio', async (req, res) =>{
 )
 
 //Cambiar Password Usuario
-
+routesUser.post('/editPassword', async (req, res) =>{
+  try {
+    const Datos = req.body
+    const respuesta = await actualizarPassword(Datos)
+    console.log(respuesta)
+    res.send(respuesta)
+}catch (error) {
+  res.status(500).send( 'Usuario No Existe')
+}}
+)
 
 //Eliminar Usuario
-// routesUser.delete('delete', (req,res))
+
+routesUser.delete('/delete', async (req,res)=>{
+  try {
+    const {id} = req.body
+    const respuesta = await deleteUsuario(id)
+    res.status(200).json(`Usuario con ID: ${respuesta.id} y Correo: ${respuesta.email} Eliminado Correctamente`)
+  } catch (error) {
+    res.status(500).send("Usuario No Existe")
+  }
+ })
 
 export default routesUser ;

@@ -2,9 +2,21 @@ import { prisma } from "../../prisma.cliente.js";
 
 
 
-export async function writePublicaciones(Datos) {
-const publicaciones = await prisma.publicaciones.create({
-    data: Datos
+export async function writePublicaciones(Datos, imagen) {
+    const publicaciones = await prisma.publicaciones.create({
+    data: {
+        owner: parseInt(Datos.owner),
+        moneda: Datos.moneda,
+        precio: parseInt(Datos.precio),
+        priority: parseInt(Datos.priority),
+        provincia: Datos.provincia,
+        titulo:Datos.titulo,
+        categoria:Datos.categoria,
+        descripcion:Datos.descripcion,
+        imagen: `/Upload/${imagen.filename}`,
+        likes:parseInt(Datos.likes),
+        municipio:Datos.municipio
+    }
 }) 
 return publicaciones;
 }

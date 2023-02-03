@@ -5,6 +5,8 @@ import { authenticateToken } from "../../Auth/middleware/authenticatorJwt.js";
 import { readUsersById } from "../../Auth/Controllers/readUsers.js";
 import { deletePublic, updateLikes, updatePublicaciones, writePublicaciones } from "../Controllers/postPublicacion.js";
 import { readPublicaciones, readPublicacionesByCategoria, readPublicacionesById, readPublicacionesByMuni, readPublicacionesByPrecio, readPublicacionesByPriority, readPublicacionesByProv, readPublicacionesBySearch, readPublicacionesByTwoArgument } from "../Controllers/readPublicaciones.js";
+import { upload } from "../../mullerConfig.js";
+
 
 const routesPublicaciones = Router()
 
@@ -78,17 +80,22 @@ routesPublicaciones.get('/parametros',authenticateToken ,async (req, res) => {
 // POST------PUBLICACIONES
 
 //Post publicaciones bi id and servicio
-routesPublicaciones.post('/publicar',authenticateToken ,async (req, res) => {
+routesPublicaciones.post('/publicar',authenticateToken, upload , async (req, res) => {
+  const imagen = req.file
   const Datos = req.body
-  const {owner} = Datos
-  const verify = await readUsersById(owner)
-  console.log(verify.servicio)
+  console.log(Datos)
+  console.log(imagen)
+  const id  = Datos.owner
+  
   try {
-    if (!verify.servicio ) return res.status(400).json({error: 'No Authorizado'})
-    const data = await writePublicaciones(Datos)
+    const verify = await readUsersById(id)
+    console.log(verify.servicio)
+    if (!verify.servicio ) return res.status(400).json({error: 'No Authorizadosss'})
+    const data = await writePublicaciones(Datos, imagen)
     res.send(data)
   } catch (error) {
-    res.status(401).json({error: 'No Authorizado'})
+    console.log(error)
+    res.status(401).json({error: error.message})
   }
 })
 
@@ -96,9 +103,9 @@ routesPublicaciones.post('/publicar',authenticateToken ,async (req, res) => {
 routesPublicaciones.post('/update',authenticateToken ,async (req, res) => {
   const Datos = req.body
   const {owner} = Datos
-  const verify = await readUsersById(owner)
-  console.log(verify.servicio)
   try {
+    const verify = await readUsersById(owner)
+    console.log(verify.servicio)
     if (!verify.servicio ) return res.status(400).json({error: 'No Authorizado'})
     const data = await updatePublicaciones(Datos)
     res.send(data)
